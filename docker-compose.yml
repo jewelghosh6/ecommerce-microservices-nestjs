@@ -1,0 +1,82 @@
+services:
+
+  # Product Order Service + Postgres
+  postgres-order:
+    image: postgres:15-alpine
+    container_name: postgres-order
+    environment:
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_pass
+      POSTGRES_DB: order_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+
+    # Customer Service + Postgres
+  postgres-customer:
+    image: postgres:15-alpine
+    container_name: postgres-customer
+    environment:
+      POSTGRES_USER: customer_user
+      POSTGRES_PASSWORD: customer_pass
+      POSTGRES_DB: customer_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_customer_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+
+  product-order-service:
+    build: ./product-order-service
+    container_name: product-order-service
+    ports:
+      - "3001:3000"
+    depends_on:
+      - rabbitmq
+      - postgres-order
+    environment:
+      - RABBITMQ_URL=amqp://user:password@rabbitmq:5672
+      - CHOKIDAR_USEPOLLING=true
+    env_file:
+      - ./product-order-service/.env
+
+  customer-service:
+    build: ./customer-service
+    container_name: customer-service
+    ports:
+      - "3002:3000"
+    depends_on:
+      - rabbitmq
+      - postgres-customer
+    environment:
+      - RABBITMQ_URL=amqp://user:password@rabbitmq:5672
+      - CHOKIDAR_USEPOLLING=true
+    env_file:
+      - ./customer-service/.env
+
+  frontend-dashboard-next:
+    build: ./frontend-dashboard-next
+    container_name: frontend-dashboard-next
+    ports:
+      - "3000:3000"
+    depends_on:
+      - customer-service
+      - product-order-service
+    env_file:
+      - ./frontend-dashboard-next/.env
+
+
+volumes:
+  postgres_order_data:
+  postgres_customer_data:
+
