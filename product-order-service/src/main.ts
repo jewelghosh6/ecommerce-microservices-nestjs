@@ -1,8 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { initDatabase } from './DB/models';
 
 async function bootstrap() {
+
+  await initDatabase(); // ✅ Connect DB before app starts
+  
   // 1️⃣ Create HTTP Nest app
   const app = await NestFactory.create(AppModule);
 
