@@ -68,12 +68,12 @@ services:
     build: ./frontend-dashboard-next
     container_name: frontend-dashboard-next
     ports:
-      - "3000:3000"
+      - "5000:3000"
     depends_on:
       - customer-service
       - product-order-service
-    env_file:
-      - ./frontend-dashboard-next/.env
+    # env_file:
+    #   - ./frontend-dashboard-next/.env
 
 
 volumes:
